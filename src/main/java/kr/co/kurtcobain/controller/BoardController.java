@@ -5,6 +5,7 @@ import kr.co.kurtcobain.security.CurrentUser;
 import kr.co.kurtcobain.security.UserPrincipal;
 import kr.co.kurtcobain.service.BoardService;
 
+import kr.co.kurtcobain.util.ErrorsResponse;
 import kr.co.kurtcobain.util.payload.board.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -26,7 +28,11 @@ public class BoardController {
     // 게시글 생성
     @PostMapping("/board")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> saveFreeBoard(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody CreateRequest createRequest) {
+    public ResponseEntity<?> saveFreeBoard(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody CreateRequest createRequest, Errors errors) {
+
+        if(errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(new ErrorsResponse(errors));
+        }
 
         Long id = boardService.save(userPrincipal, createRequest);
 
@@ -55,7 +61,11 @@ public class BoardController {
     // 게시글 수정
     @PatchMapping("/board/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> updateBoard(@CurrentUser UserPrincipal userPrincipal, @Valid @RequestBody CreateRequest createRequest, @PathVariable("id") Long id) {
+    public ResponseEntity<?> updateBoard(@CurrentUser UserPrincipal userPrincipal, @PathVariable("id") Long id, @Valid @RequestBody CreateRequest createRequest, Errors errors) {
+
+        if(errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(new ErrorsResponse(errors));
+        }
 
         Long boardId = boardService.update(id, userPrincipal, createRequest);
 
